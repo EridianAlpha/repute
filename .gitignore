@@ -38,3 +38,36 @@ frontend/.vercel
 # typescript
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
+
+
+##########################################
+################# BackEnd ################
+##########################################
+
+# Compiler files
+backend/cache/
+backend/out/
+backend/lib/
+
+# Ignores development broadcast logs
+backend/broadcast/
+backend/broadcast/*
+backend/!/broadcast
+backend//broadcast/*/31337/
+backend//broadcast/**/dry-run/
+
+# Dotenv file
+backend/.env
+
+# Foundry Files
+backend/docs/
+backend/.gas-snapshot
+backend/lcov.info
+backend/coverage-report.txt
+backend/report.md
+
+# Custom Foundry Files
+backend/MAKE_CLI_INPUT_VALUE.tmp
+
+# Mac OS Files
+backend/.DS_Store
