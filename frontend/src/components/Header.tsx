@@ -52,15 +52,7 @@ function HeaderButtons({ displayZone }) {
                     Links
                 </Text>
             )}
-            <Link href={"https://x.com/??"} target="_blank">
-                <Button variant={"HeaderButton"} aria-label={"View X.com"} borderRadius={"full"} p={2}>
-                    <HStack gap={3}>
-                        <FontAwesomeIcon icon={faXTwitter} size={"xl"} />
-                        {displayZone == "drawer" && <Text pr={1}>x.com</Text>}
-                    </HStack>
-                </Button>
-            </Link>
-            <Link href={"https://github.com/??"} target="_blank">
+            <Link href={"https://github.com/EridianAlpha/repute"} target="_blank">
                 <Button variant={"HeaderButton"} aria-label={"View GitHub Source"} borderRadius={"full"} p={2}>
                     <HStack gap={3}>
                         <FontAwesomeIcon icon={faGithub} size={"xl"} />
@@ -103,8 +95,17 @@ export default function Header({}) {
                 <Box className={"bgPage"}>
                     <HStack h={16} alignItems={"center"} justifyContent={"space-between"}>
                         <HStack spacing={3} alignItems={"center"} cursor={"pointer"} onClick={navigateHome}>
+                            <Image
+                                onClick={navigateHome}
+                                sx={{ cursor: "pointer" }}
+                                width={"40px"}
+                                objectFit={"cover"}
+                                src={"images/ReputeLogo.png"}
+                                borderRadius={"10px"}
+                                alt={"Repute Logo"}
+                            />
                             <Box pr={2} minW={"fit-content"} fontWeight="extrabold" fontSize="xl" whiteSpace="nowrap" overflow="hidden">
-                                Template Project
+                                Repute
                             </Box>
                         </HStack>
                         <HStack display={{ base: "none", sm: "flex" }} spacing={5}>
