@@ -71,3 +71,4 @@ backend/MAKE_CLI_INPUT_VALUE.tmp
 
 # Mac OS Files
 backend/.DS_Store
+.DS_Store
