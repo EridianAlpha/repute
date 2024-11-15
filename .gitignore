@@ -53,8 +53,8 @@ backend/lib/
 backend/broadcast/
 backend/broadcast/*
 backend/!/broadcast
-backend//broadcast/*/31337/
-backend//broadcast/**/dry-run/
+backend/broadcast/*/31337/
+backend/broadcast/**/dry-run/
 
 # Dotenv file
 backend/.env
