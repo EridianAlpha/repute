@@ -1,5 +1,4 @@
 import Header from "./Header"
-import Footer from "./Footer"
 
 import { Box, Flex, Text } from "@chakra-ui/react"
 
@@ -11,12 +10,10 @@ const App = () => {
                 <Flex direction={"column"} alignItems={"center"} maxW={"100vw"} w={"1150px"} px={{ base: "0px", sm: "2vw", xl: "3vw", "2xl": "3vw" }}>
                     <Box height={30} />
                     <Text fontWeight={"extrabold"} fontSize={"3xl"} textAlign={"center"}>
-                        Next.js Template Project
+                        Repute
                     </Text>
                 </Flex>
             </Flex>
-            <Box flex="1" />
-            <Footer />
         </Box>
     )
 }
