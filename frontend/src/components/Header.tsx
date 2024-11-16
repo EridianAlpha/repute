@@ -60,20 +60,11 @@ function HeaderButtons({ displayZone }) {
                     </HStack>
                 </Button>
             </Link>
-            {displayZone == "header" && <Box borderLeftWidth={1} className={"borderColorDivider"} height={8} />}
             {displayZone == "drawer" && (
                 <Text fontWeight={"bold"} pl={1} pt={3} fontSize={"lg"}>
                     Settings
                 </Text>
             )}
-            <CustomButtonTooltip labelText="Toggle color theme">
-                <Button variant={"HeaderButton"} px={2} aria-label="Toggle color theme" onClick={toggleColorMode} borderRadius={"full"}>
-                    <HStack gap={3}>
-                        {colorMode === "light" ? <FontAwesomeIcon icon={faMoon} size={"xl"} /> : <FontAwesomeIcon icon={faSun} size={"xl"} />}
-                        {displayZone == "drawer" && <Text pr={1}>Toggle color theme</Text>}
-                    </HStack>
-                </Button>
-            </CustomButtonTooltip>
         </>
     )
 }

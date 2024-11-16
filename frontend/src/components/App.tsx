@@ -11,6 +11,7 @@ const App = () => {
                 <Header />
                 <Flex direction={"column"} alignItems={"center"} maxW={"100vw"} w={"1150px"} px={{ base: "0px", sm: "2vw", xl: "3vw", "2xl": "3vw" }}>
                     <ContentContainer />
+                    <Box h={"500px"} />
                 </Flex>
             </Flex>
         </Box>
