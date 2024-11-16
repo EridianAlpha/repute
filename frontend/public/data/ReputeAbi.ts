@@ -12,6 +12,24 @@ export const abi = [
                 type: "uint256",
             },
         ],
+        name: "cancelVote",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "uint256",
+                name: "projectId",
+                type: "uint256",
+            },
+            {
+                internalType: "uint256",
+                name: "voteId",
+                type: "uint256",
+            },
+        ],
         name: "computeAnswerAndBounds",
         outputs: [],
         stateMutability: "nonpayable",
@@ -238,30 +256,6 @@ export const abi = [
     {
         inputs: [
             {
-                internalType: "bytes32",
-                name: "hash",
-                type: "bytes32",
-            },
-            {
-                internalType: "bytes",
-                name: "signature",
-                type: "bytes",
-            },
-        ],
-        name: "ecrecovery",
-        outputs: [
-            {
-                internalType: "address",
-                name: "",
-                type: "address",
-            },
-        ],
-        stateMutability: "pure",
-        type: "function",
-    },
-    {
-        inputs: [
-            {
                 internalType: "address",
                 name: "oracle",
                 type: "address",
@@ -301,6 +295,25 @@ export const abi = [
     {
         inputs: [
             {
+                internalType: "address",
+                name: "oracleAddress",
+                type: "address",
+            },
+        ],
+        name: "getOracleReputation",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "reputation",
+                type: "uint256",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
                 internalType: "uint256",
                 name: "projectId",
                 type: "uint256",
@@ -311,7 +324,7 @@ export const abi = [
                 type: "uint256",
             },
         ],
-        name: "getResults",
+        name: "getVoteResult",
         outputs: [
             {
                 internalType: "uint256",
@@ -471,54 +484,6 @@ export const abi = [
             },
         ],
         stateMutability: "view",
-        type: "function",
-    },
-    {
-        inputs: [
-            {
-                internalType: "bytes32",
-                name: "hash",
-                type: "bytes32",
-            },
-            {
-                internalType: "bytes",
-                name: "signature",
-                type: "bytes",
-            },
-        ],
-        name: "recoverSigner",
-        outputs: [
-            {
-                internalType: "address",
-                name: "",
-                type: "address",
-            },
-        ],
-        stateMutability: "pure",
-        type: "function",
-    },
-    {
-        inputs: [
-            {
-                internalType: "string",
-                name: "message",
-                type: "string",
-            },
-            {
-                internalType: "bytes",
-                name: "sig",
-                type: "bytes",
-            },
-        ],
-        name: "recoverStringFromRaw",
-        outputs: [
-            {
-                internalType: "address",
-                name: "",
-                type: "address",
-            },
-        ],
-        stateMutability: "pure",
         type: "function",
     },
     {

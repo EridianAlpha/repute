@@ -1,8 +1,5 @@
 import { VStack } from "@chakra-ui/react"
-
 import VoteContainer from "./VoteContainer"
-
-import { useAccount } from "wagmi"
 
 const projects = [
     { id: 17, name: "Arbon", tagLine: "Carbon Tokens Onchain", image: "./images/ArbonLogo.jpeg", totalPaidOut: 1_000_000, totalRugged: 5_000 },
@@ -11,7 +8,7 @@ const votes = [
     {
         id: 914,
         projectId: 17,
-        name: "Borneo Forest (4.995400, -52.527494) - November 2024",
+        name: "Amazon Forest (4.995400, -52.527494) - November 2024",
         description: "Vote on the percentage tree coverage in this 1km square of Amazon forest.",
         ipfsHash: "QmWca5UoN3hHdAMtJCiDyaLAPgdEy7eDLu6XGqQtoNq5f3",
     },
@@ -25,8 +22,6 @@ const oracles = [
 ]
 
 export default function ContentContainer({ wagmiProviderConfig }) {
-    const { isConnected } = useAccount()
-
     return (
         <VStack w={"100vw"} alignItems={"center"} gap={0} px={3} pt={"20px"}>
             {/* Hardcode vote.id to 914 */}

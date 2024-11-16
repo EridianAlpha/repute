@@ -12,39 +12,13 @@ import {
     DrawerOverlay,
     DrawerContent,
     DrawerCloseButton,
-    useColorMode,
 } from "@chakra-ui/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faGithub, faXTwitter } from "@fortawesome/free-brands-svg-icons"
-import { faSun, faMoon, faBars } from "@fortawesome/free-solid-svg-icons"
+import { faGithub } from "@fortawesome/free-brands-svg-icons"
+import { faBars } from "@fortawesome/free-solid-svg-icons"
 import Link from "next/link"
 
 function HeaderButtons({ displayZone }) {
-    const { colorMode, toggleColorMode } = useColorMode()
-
-    const CustomButtonTooltip = ({ labelText, children }) => {
-        return (
-            <Tooltip
-                className="tooltip"
-                closeOnClick={false}
-                gutter={8}
-                label={
-                    <VStack className="tooltipLabel">
-                        <Text fontWeight={"bold"}>{labelText}</Text>
-                    </VStack>
-                }
-                placement={"bottom"}
-                borderRadius={"full"}
-                hasArrow={true}
-                closeDelay={0}
-                openDelay={0}
-                isDisabled={displayZone === "drawer"}
-            >
-                {children}
-            </Tooltip>
-        )
-    }
-
     return (
         <>
             {displayZone == "drawer" && (
@@ -96,7 +70,7 @@ export default function Header({}) {
                                 alt={"Repute Logo"}
                             />
                             <Box pr={2} minW={"fit-content"} fontWeight="extrabold" fontSize="xl" whiteSpace="nowrap" overflow="hidden">
-                                Repute
+                                Repute - A reputation based dispute resolution protocol
                             </Box>
                         </HStack>
                         <HStack display={{ base: "none", sm: "flex" }} spacing={5}>
