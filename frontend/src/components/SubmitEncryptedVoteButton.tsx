@@ -31,6 +31,10 @@ export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, 
     })
 
     const handleTransaction = async () => {
+        // TODO: Remove when contract is deployed and working
+        setOracleVoted(true)
+        return
+
         try {
             setTransactionState({ ...transactionState, error: null, isWaitingForSignature: true })
 

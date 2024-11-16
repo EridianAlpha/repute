@@ -73,6 +73,7 @@ export default function VoteContainer({ wagmiProviderConfig, projects, vote, ora
                                     onClick={() => {
                                         setSignedMessage("")
                                         setValueToEncrypt(null)
+                                        setOracleVoted(false)
                                     }}
                                 >
                                     <Text fontSize={"lg"}>🔄 Reset</Text>
