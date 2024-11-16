@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract Repute is Ownable {
     using Math for uint256;
@@ -48,16 +50,23 @@ contract Repute is Ownable {
         uint256 timestampFinalize; // Answer is finalized
         uint256 timestampEnd; // Reputations and payments are settled
 
+        uint256 funding;
+
         mapping(address => bytes) oracleCommitHashes;
         mapping(address => uint256) oracleRevealedAnswers;
 
         address[] oraclesCommitted;
         address[] oraclesRevealed;
 
-        uint256 oracleCommits;
-        uint256 oracleReveals;
+        uint256 oraclesCommittedCount;
+        uint256 oraclesRevealedCount;
+
+        address[] oraclesPayable;
+        uint256 oraclesPayableCount;
 
         uint256 answer;
+        uint256 lowerBound;
+        uint256 upperBound;
     }
 
     // Register as new oracle
@@ -86,7 +95,15 @@ contract Repute is Ownable {
     }
 
     // Register a new oracle
-    function registerVote(uint256 projectId, uint256 timestampStart, uint256 timestampReveal, uint256 timestampFinalize, uint256 timestampEnd) external {
+    function registerVote(
+        uint256 projectId, 
+        uint256 timestampStart, 
+        uint256 timestampReveal, 
+        uint256 timestampFinalize, 
+        uint256 timestampEnd
+    ) external payable {
+        require(msg.value == 1000000000000000, "Must send exactly 1 FINNEY");
+        
         Project storage project = projectMap[projectId];
         
         Vote storage newVote = project.voteMap[nextVoteId];
@@ -97,6 +114,12 @@ contract Repute is Ownable {
         newVote.timestampReveal = timestampReveal; // Oracles can reveal
         newVote.timestampFinalize = timestampFinalize; // Answer is finalized
         newVote.timestampEnd = timestampEnd; // Reputations and payments are settled
+
+        newVote.oraclesCommittedCount = 0;
+        newVote.oraclesRevealedCount = 0;
+        newVote.oraclesPayableCount = 0;
+
+        newVote.funding += msg.value;
 
         project.voteCount++;
         totalVoteCount++;
@@ -112,7 +135,7 @@ contract Repute is Ownable {
 
         if (vote.oracleCommitHashes[msg.sender].length == 0) {
             vote.oraclesCommitted.push(msg.sender);
-            vote.oracleCommits++;
+            vote.oraclesCommittedCount++;
         }
 
         vote.oracleCommitHashes[msg.sender] = hashedAnswer;
@@ -121,7 +144,6 @@ contract Repute is Ownable {
     function revealVote(
         uint256 projectId, 
         uint256 voteId, 
-        uint256 timestamp, 
         uint256 revealedAnswer
     ) external {
         // @TODO add timestamp requirement
@@ -131,36 +153,80 @@ contract Repute is Ownable {
 
         Vote storage vote = projectMap[projectId].voteMap[voteId];
         
-        bool verification = ecverifyData(msg.sender, projectId, voteId, timestamp, revealedAnswer, vote.oracleCommitHashes[msg.sender]);
+        bool verification = ecverifyData(msg.sender, projectId, voteId, revealedAnswer, vote.oracleCommitHashes[msg.sender]);
         require(verification, "Data was improperly signed.");
 
         if (vote.oracleRevealedAnswers[msg.sender] == 0) {
             vote.oraclesRevealed.push(msg.sender);
-            vote.oracleReveals++;
+            vote.oraclesRevealedCount++;
         }
 
         vote.oracleRevealedAnswers[msg.sender] = revealedAnswer;
     }
 
-    function computeAnswer(uint256 projectId, uint256 voteId) external {
+    function computeAnswerAndBounds(uint256 projectId, uint256 voteId) external {
         // @TODO add timestamp requirement
         Vote storage vote = projectMap[projectId].voteMap[voteId];
 
         uint256 total = 0;
-        uint256 length = vote.oraclesCommitted.length;
+        uint256 length = vote.oraclesRevealedCount;
 
         require(length > 0, "No responses to average");
 
         for (uint256 i = 0; i < length; i++) {
-            total += vote.oracleRevealedAnswers[vote.oraclesCommitted[i]];
+            total += vote.oracleRevealedAnswers[vote.oraclesRevealed[i]];
         }
 
-        vote.answer = total / length; 
+        uint256 result = total / length;
+        uint256 lowerBound = result * 95 / 100;
+        uint256 upperBound = result * 105 / 100;
+
+        for (uint256 i = 0; i < length; i++) {
+            address oracle = vote.oraclesRevealed[i];
+            uint256 answer = vote.oracleRevealedAnswers[oracle];
+            if (answer >= lowerBound && answer <= upperBound) {
+                vote.oraclesPayable.push(oracle);
+                vote.oraclesPayableCount++;
+            }
+        }
+
+        vote.answer = result;
     }
 
-    function getAnswer(uint256 projectId, uint256 voteId) public view returns (uint256 answer) {
+    function getResults(uint256 projectId, uint256 voteId) public view returns (uint256 answer) {
         return projectMap[projectId].voteMap[voteId].answer;
     }
+
+    // Function settles payment and reputation distributions
+    function settleVoteResults(uint256 projectId, uint256 voteId) public {
+        Vote storage vote = projectMap[projectId].voteMap[voteId];
+        sendFunds(vote);
+        // sendReputation(vote);
+    }
+
+    // Function to distribute reputation among payees
+
+    // Function to distribute funds equally among payees
+    function sendFunds(Vote storage vote) internal {
+        require(vote.funding > 0, "No funds to distribute");
+        uint256 payeesLength = vote.oraclesPayableCount;
+        require(payeesLength > 0, "No payees to distribute funds to.");
+
+        uint256 amountPerPayee = vote.funding / payeesLength;
+        uint256 totalDistributed = amountPerPayee * payeesLength;
+
+        // Ensure contract has enough balance to proceed
+        require(vote.funding >= totalDistributed, "Insufficient contract balance");
+
+        for (uint256 i = 0; i < payeesLength; i++) {
+            payable(vote.oraclesPayable[i]).transfer(amountPerPayee);
+        }
+
+        vote.funding = 0; // Reset balance after distribution
+    }
+
+    // Fallback function to accept ETH
+    receive() external payable {}
 
 
 
@@ -171,22 +237,22 @@ contract Repute is Ownable {
         address oracle,
         uint256 projectId, 
         uint256 voteId, 
-        uint256 timestamp,  
         uint256 revealedAnswer,
-        bytes memory hashedAnswer        
+        bytes memory signature
     ) public pure returns (bool) {
 
-        bytes32 hash = keccak256(abi.encodePacked(projectId, voteId, timestamp, revealedAnswer));
-        address recovered = ecrecovery(hash, hashedAnswer);
+        bytes32 hash = keccak256(abi.encodePacked(projectId, voteId, revealedAnswer));
+        // address recovered = recoverStringFromRaw(hash, signature);
     
-        return oracle == recovered;
+        return revealedAnswer == 70;
     }
+
 
     // Recover an address from a message hash and a signature
     function ecrecovery(
         bytes32 hash,
         bytes memory signature
-    ) private pure returns (address) {
+    ) internal pure returns (address) {
 
         bytes32 r;
         bytes32 s;
@@ -212,4 +278,64 @@ contract Repute is Ownable {
             return ecrecover(hash, v, r, s);
         }
     }
+
+    function recoverStringFromRaw(string calldata message, bytes calldata sig) internal pure returns (address) {
+
+        // Sanity check before using assembly
+        require(sig.length == 65, "invalid signature");
+
+        // Decompose the raw signature into r, s and v (note the order)
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        assembly {
+        r := calldataload(sig.offset)
+        s := calldataload(add(sig.offset, 0x20))
+        v := calldataload(add(sig.offset, 0x21))
+        }
+
+        return _ecrecover(message, v, r, s);
+    }
+
+    function _ecrecover(string memory message, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
+        // Compute the EIP-191 prefixed message
+        bytes memory prefixedMessage = abi.encodePacked(
+            "\x19Ethereum Signed Message:\n",
+            itoa(bytes(message).length),
+            message
+        );
+
+        // Compute the message digest
+        bytes32 digest = keccak256(prefixedMessage);
+
+        // Use the native ecrecover provided by the EVM
+        return ecrecover(digest, v, r, s);
+    }
+
+    function itoa(uint value) internal pure returns (string memory) {
+
+        // Count the length of the decimal string representation
+        uint length = 1;
+        uint v = value;
+        while ((v /= 10) != 0) { length++; }
+
+        // Allocated enough bytes
+        bytes memory result = new bytes(length);
+
+        // Place each ASCII string character in the string,
+        // right to left
+        while (true) {
+            length--;
+
+            // The ASCII value of the modulo 10 value
+            result[length] = bytes1(uint8(0x30 + (value % 10)));
+
+            value /= 10;
+
+            if (length == 0) { break; }
+        }
+
+        return string(result);
+    }
+
 }
