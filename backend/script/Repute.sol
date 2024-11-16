@@ -61,8 +61,8 @@ contract Repute is Ownable {
         uint256 oraclesCommittedCount;
         uint256 oraclesRevealedCount;
 
+        address[] oraclesLost;
         address[] oraclesPayable;
-        uint256 oraclesPayableCount;
 
         uint256 answer;
         uint256 lowerBound;
@@ -71,13 +71,13 @@ contract Repute is Ownable {
 
     // Register as new oracle
     function registerOracle() external {
-        require(oracleMap[msg.sender].id == 0, "Oracle already registered");
+        // require(oracleMap[msg.sender].id == 0, "Oracle already registered");
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");
 
         Oracle storage newOracle = oracleMap[msg.sender];
         newOracle.id = nextOracleId;
         blacklistedOracles[msg.sender] = false;
-
+    
         nextOracleId++;
     }
 
@@ -117,7 +117,6 @@ contract Repute is Ownable {
 
         newVote.oraclesCommittedCount = 0;
         newVote.oraclesRevealedCount = 0;
-        newVote.oraclesPayableCount = 0;
 
         newVote.funding += msg.value;
 
@@ -125,6 +124,21 @@ contract Repute is Ownable {
         totalVoteCount++;
 
         nextVoteId++;
+    }
+
+    function cancelVote(
+        uint256 projectId,
+        uint256 voteId
+    ) external {
+        Vote storage vote = projectMap[projectId].voteMap[voteId];
+
+        for (uint256 i = 0; i < vote.oraclesCommitted.length; i++) {
+            address oracleRecipient = vote.oraclesCommitted[i];
+            // Should be smart enough to know that already revealed should not get refunded
+            oracleMap[oracleRecipient].volumePending -= vote.funding;
+
+            projectMap[projectId].totalRugged += vote.oraclesCommittedCount * vote.funding;
+        }
     }
 
     function submitVote(uint256 projectId, uint256 voteId, bytes calldata hashedAnswer) external {
@@ -139,6 +153,8 @@ contract Repute is Ownable {
         }
 
         vote.oracleCommitHashes[msg.sender] = hashedAnswer;
+
+        oracleMap[msg.sender].volumePending += vote.funding;
     }
 
     function revealVote(
@@ -162,6 +178,17 @@ contract Repute is Ownable {
         }
 
         vote.oracleRevealedAnswers[msg.sender] = revealedAnswer;
+
+        oracleMap[msg.sender].volumePending -= vote.funding;
+    }
+
+    function getVoteResult(uint256 projectId, uint256 voteId) public view returns (uint256 answer) {
+        return projectMap[projectId].voteMap[voteId].answer;
+    }
+
+    function getOracleReputation(address oracleAddress) public view returns (uint256 reputation) {
+        Oracle memory oracle = oracleMap[oracleAddress];
+        return oracle.volumeWon - oracle.volumeLost - oracle.volumePending;
     }
 
     function computeAnswerAndBounds(uint256 projectId, uint256 voteId) external {
@@ -186,30 +213,34 @@ contract Repute is Ownable {
             uint256 answer = vote.oracleRevealedAnswers[oracle];
             if (answer >= lowerBound && answer <= upperBound) {
                 vote.oraclesPayable.push(oracle);
-                vote.oraclesPayableCount++;
+            } else {
+                vote.oraclesLost.push(oracle);
             }
         }
 
         vote.answer = result;
     }
 
-    function getResults(uint256 projectId, uint256 voteId) public view returns (uint256 answer) {
-        return projectMap[projectId].voteMap[voteId].answer;
-    }
-
     // Function settles payment and reputation distributions
     function settleVoteResults(uint256 projectId, uint256 voteId) public {
         Vote storage vote = projectMap[projectId].voteMap[voteId];
-        sendFunds(vote);
-        // sendReputation(vote);
+        sendFunds(projectId, vote);
+        updateLosses(vote);
     }
 
     // Function to distribute reputation among payees
+    function updateLosses(Vote storage vote) internal {
+        for (uint256 i = 0; i < vote.oraclesLost.length; i++) {
+            address oracleRecipient = vote.oraclesLost[i];
+            
+            oracleMap[oracleRecipient].volumeLost += vote.funding * 75 / 100;
+        }
+    }
 
     // Function to distribute funds equally among payees
-    function sendFunds(Vote storage vote) internal {
+    function sendFunds(uint256 projectId, Vote storage vote) internal {
         require(vote.funding > 0, "No funds to distribute");
-        uint256 payeesLength = vote.oraclesPayableCount;
+        uint256 payeesLength = vote.oraclesPayable.length;
         require(payeesLength > 0, "No payees to distribute funds to.");
 
         uint256 amountPerPayee = vote.funding / payeesLength;
@@ -219,8 +250,12 @@ contract Repute is Ownable {
         require(vote.funding >= totalDistributed, "Insufficient contract balance");
 
         for (uint256 i = 0; i < payeesLength; i++) {
-            payable(vote.oraclesPayable[i]).transfer(amountPerPayee);
+            address oracleRecipient = vote.oraclesPayable[i];
+            payable(oracleRecipient).transfer(amountPerPayee);
+            oracleMap[oracleRecipient].volumeWon += vote.funding;
         }
+
+        projectMap[projectId].totalPaidOut += payeesLength * vote.funding;
 
         vote.funding = 0; // Reset balance after distribution
     }
