@@ -1,4 +1,9 @@
+import { useState } from "react"
+
 import { VStack, HStack, Text, Box, Image, Input, Button } from "@chakra-ui/react"
+import { useAccount } from "wagmi"
+
+import EncryptVoteButton from "./EncryptVoteButton"
 
 const OracleIcon = ({ oracle }) => {
     return (
@@ -10,6 +15,11 @@ const OracleIcon = ({ oracle }) => {
 
 export default function VoteContainer({ projects, vote, oracles }) {
     const project = projects.find((project) => project.id == vote.projectId)
+
+    const [valueToEncrypt, setValueToEncrypt] = useState("")
+    const [signedMessage, setSignedMessage] = useState("")
+
+    const { isConnected } = useAccount()
 
     return (
         <VStack w={"100vw"} alignItems={"center"} justifyContent={"space-around"}>
@@ -49,26 +59,58 @@ export default function VoteContainer({ projects, vote, oracles }) {
                             </Text>
                         </VStack>
                     </VStack>
-                    <VStack gap={3} border={"2px solid white"} borderRadius={"20px"} p={3} w={"100%"}>
-                        <Text fontWeight={"bold"} fontSize={"2xl"}>
-                            VOTE
-                        </Text>
-                        <Input placeholder="Enter a value from 0 - 100" borderRadius={"10px"} maxW={"250px"} />
-                        <Button>
-                            <Text>🔒 Encrypt vote</Text>
-                        </Button>
-                        <VStack gap={0}>
-                            <Text className={"codeBackground"} px={3} pt={1} borderTopRadius={"10px"} fontWeight={"bold"}>
-                                Encrypted vote
-                            </Text>
-                            <Text maxW={"350px"} wordBreak={"break-word"} fontFamily={"monospace"} fontSize={"md"} p={3} className={"codeBackground"}>
-                                0x49dce40b6397f1f66d795efc7bd9422e2043ef3d347f07c259c16392a5cffb88778cb0936ac9b4f0164be0c3ef489396d916d03c17c5dcd99b5b0eaee89189bb1c
-                            </Text>
+                    {isConnected && (
+                        <VStack gap={3} border={"2px solid white"} borderRadius={"20px"} p={3} w={"100%"}>
+                            <HStack w={"100%"} flexGrow={1} justifyContent={"space-between"} px={3}>
+                                <Text fontWeight={"bold"} fontSize={"2xl"}>
+                                    VOTE
+                                </Text>
+                                <Button
+                                    borderRadius={"full"}
+                                    h={"30px"}
+                                    onClick={() => {
+                                        setSignedMessage("")
+                                        setValueToEncrypt(null)
+                                    }}
+                                >
+                                    <Text fontSize={"lg"}>🔄 Reset</Text>
+                                </Button>
+                            </HStack>
+                            {!signedMessage && (
+                                <>
+                                    <Input
+                                        placeholder="Enter a value from 0 - 100"
+                                        borderRadius={"10px"}
+                                        maxW={"250px"}
+                                        onChange={(e) => setValueToEncrypt(e.target.value)}
+                                    />
+                                    <EncryptVoteButton valueToEncrypt={valueToEncrypt} setSignedMessage={setSignedMessage} />
+                                </>
+                            )}
+                            {signedMessage && (
+                                <>
+                                    <VStack gap={0}>
+                                        <Text className={"codeBackground"} px={3} pt={1} borderTopRadius={"10px"} fontWeight={"bold"}>
+                                            Encrypted vote
+                                        </Text>
+                                        <Text
+                                            maxW={"350px"}
+                                            wordBreak={"break-word"}
+                                            fontFamily={"monospace"}
+                                            fontSize={"md"}
+                                            p={3}
+                                            className={"codeBackground"}
+                                        >
+                                            {signedMessage}
+                                        </Text>
+                                    </VStack>
+                                    <Button isDisabled={true}>
+                                        <Text>🗳️ Submit encrypted vote</Text>
+                                    </Button>
+                                </>
+                            )}
                         </VStack>
-                        <Button isDisabled={true}>
-                            <Text>🗳️ Submit encrypted vote</Text>
-                        </Button>
-                    </VStack>
+                    )}
                 </VStack>
                 <HStack>
                     <Text>Chart</Text>
