@@ -52,7 +52,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             <style>{style}</style>
             <div id="app" className="hideUntilReady">
                 <Head>
-                    <title>Template Project</title>
+                    <title>Repute</title>
                 </Head>
                 <Component {...pageProps} />
                 <Analytics />
