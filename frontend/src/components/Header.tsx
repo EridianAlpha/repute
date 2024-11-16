@@ -34,11 +34,6 @@ function HeaderButtons({ displayZone }) {
                     </HStack>
                 </Button>
             </Link>
-            {displayZone == "drawer" && (
-                <Text fontWeight={"bold"} pl={1} pt={3} fontSize={"lg"}>
-                    Settings
-                </Text>
-            )}
         </>
     )
 }
@@ -69,7 +64,7 @@ export default function Header({}) {
                                 borderRadius={"10px"}
                                 alt={"Repute Logo"}
                             />
-                            <Box pr={2} minW={"fit-content"} fontWeight="extrabold" fontSize="xl" whiteSpace="nowrap" overflow="hidden">
+                            <Box pr={2} minW={"fit-content"} fontWeight="extrabold" fontSize="xl">
                                 Repute - A reputation based dispute resolution protocol
                             </Box>
                         </HStack>

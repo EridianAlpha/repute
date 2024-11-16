@@ -75,7 +75,7 @@ export default function VoteContainer({ wagmiProviderConfig, projects, vote, ora
 
     return (
         <VStack w={"100vw"} alignItems={"center"} justifyContent={"space-around"}>
-            <HStack w={"100vw"} alignItems={"start"} justifyContent={"space-around"}>
+            <HStack w={"100vw"} alignItems={"start"} justifyContent={"space-around"} wrap={"wrap"}>
                 <VStack gap={5} minW={"350px"}>
                     <VStack gap={3} border={"2px solid white"} borderRadius={"20px"} p={3} w={"100%"} className={"pageContent"}>
                         <HStack gap={3} w={"100%"}>
@@ -98,7 +98,7 @@ export default function VoteContainer({ wagmiProviderConfig, projects, vote, ora
                             </HStack>
                         </VStack>
                     </VStack>
-                    <VStack gap={3} border={"2px solid white"} borderRadius={"20px"} p={3} w={"100%"} className={"pageContent"}>
+                    <VStack gap={3} border={"2px solid white"} borderRadius={"20px"} p={3} mb={2} w={"100%"} className={"pageContent"}>
                         <VStack gap={0}>
                             <Text fontWeight={"bold"} fontSize={"2xl"}>
                                 Vote Prize Pool
@@ -229,7 +229,7 @@ export default function VoteContainer({ wagmiProviderConfig, projects, vote, ora
                         <VStack>
                             <Image src="./images/DataSet3.png" alt="DataSet1" maxW={"250px"} borderRadius={"30px"} />
                         </VStack>
-                        <Text>
+                        <Text wordBreak={"break-word"}>
                             IPFS Hash:{" "}
                             <Link
                                 className="bgPage"
