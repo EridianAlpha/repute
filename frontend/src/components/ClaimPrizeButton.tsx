@@ -8,7 +8,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId 
 import config from "public/data/config.json"
 import { abi as reputeAbi } from "public/data/ReputeAbi"
 
-export default function ClaimPrizeButton({ wagmiProviderConfig, setPrizePot }) {
+export default function ClaimPrizeButton({ wagmiProviderConfig, setPrizePot, setVoteFinished }) {
     const [transactionState, setTransactionState] = useState({
         isWaitingForSignature: false,
         isConfirming: false,
@@ -82,6 +82,7 @@ export default function ClaimPrizeButton({ wagmiProviderConfig, setPrizePot }) {
             triggerTxToast("Transaction confirmed", null, chainId, `txConfirmed-${hash}`, hash, "success", 5000, "green")
 
             setPrizePot(950)
+            setVoteFinished(true)
 
             setTransactionState({ ...transactionState, error: null, isWaitingForSignature: false, isConfirming: false, isConfirmed: true })
         }
