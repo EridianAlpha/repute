@@ -50,6 +50,8 @@ const customTheme = extendTheme({
             light: "#EDF2F7",
             dark: "#4c044a",
         },
+        red: "#ce4910",
+        green: "#0b8f1e",
     },
 })
 
