@@ -25,6 +25,9 @@ contract Repute is Ownable {
     uint256 public nextVoteId = 1;
     uint256 public nextProjectId = 1;
 
+    // -------------
+    // STRUCTS
+    // -------------
     struct Project {
         address owner;
         uint256 tokenBalance;
@@ -69,7 +72,11 @@ contract Repute is Ownable {
         uint256 upperBound;
     }
 
-    // Register as new oracle
+    // -------------
+    // FUNCTIONS
+    // -------------
+
+    // Register as new oracle - permissionless
     function registerOracle() external {
         // require(oracleMap[msg.sender].id == 0, "Oracle already registered");
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");
@@ -94,7 +101,7 @@ contract Repute is Ownable {
         nextProjectId++;
     }
 
-    // Register a new oracle
+    // Register a new vote for a specific project - permissionless
     function registerVote(
         uint256 projectId, 
         uint256 timestampStart, 
@@ -126,6 +133,7 @@ contract Repute is Ownable {
         nextVoteId++;
     }
 
+    // Cancel a vote if the consensus was totally off or the results were gamed. Refunds all reputation.
     function cancelVote(
         uint256 projectId,
         uint256 voteId
@@ -157,6 +165,7 @@ contract Repute is Ownable {
         oracleMap[msg.sender].volumePending += vote.funding;
     }
 
+    // Reveal vote during the reveal phase
     function revealVote(
         uint256 projectId, 
         uint256 voteId, 
@@ -182,15 +191,18 @@ contract Repute is Ownable {
         oracleMap[msg.sender].volumePending -= vote.funding;
     }
 
+    // getter for the result of a specific vote
     function getVoteResult(uint256 projectId, uint256 voteId) public view returns (uint256 answer) {
         return projectMap[projectId].voteMap[voteId].answer;
     }
 
+    // getter for a specific oracle's reputation
     function getOracleReputation(address oracleAddress) public view returns (uint256 reputation) {
         Oracle memory oracle = oracleMap[oracleAddress];
         return oracle.volumeWon - oracle.volumeLost - oracle.volumePending;
     }
 
+    // Compute the average result of oracle responses and select those that fall within the bounds
     function computeAnswerAndBounds(uint256 projectId, uint256 voteId) external {
         // @TODO add timestamp requirement
         Vote storage vote = projectMap[projectId].voteMap[voteId];
