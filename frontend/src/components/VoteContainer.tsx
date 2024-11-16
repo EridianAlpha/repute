@@ -250,7 +250,7 @@ export default function VoteContainer({ wagmiProviderConfig, projects, vote, ora
                             <Text fontSize={"4xl"}>🥳 Your vote won! 🥳</Text>
                             <Text>Average vote: 68</Text>
                             <Text>Your vote: 70</Text>
-                            <ClaimPrizeButton wagmiProviderConfig={wagmiProviderConfig} setPrizePot={setPrizePot} />
+                            <ClaimPrizeButton wagmiProviderConfig={wagmiProviderConfig} setPrizePot={setPrizePot} setVoteFinished={setVoteFinished} />
                         </VStack>
                     )}
                     {voteFinished && (
