@@ -8,7 +8,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId 
 import config from "public/data/config.json"
 import { abi as reputeAbi } from "public/data/ReputeAbi"
 
-export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, setOracleVoted }) {
+export default function RegisterOracleButton({ wagmiProviderConfig, setIsOracleRegistered }) {
     const [transactionState, setTransactionState] = useState({
         isWaitingForSignature: false,
         isConfirming: false,
@@ -37,8 +37,8 @@ export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, 
             const txObject = {
                 address: config.chains[chainId].reputeContractAddress,
                 abi: reputeAbi,
-                functionName: "submitVote",
-                args: [1, 1, signedMessage],
+                functionName: "registerOracle",
+                args: [],
                 chain: wagmiProviderConfig,
                 account: connectedWalletAddress,
             }
@@ -81,7 +81,7 @@ export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, 
             // Trigger a new toast for the transaction confirmed
             triggerTxToast("Transaction confirmed", null, chainId, `txConfirmed-${hash}`, hash, "success", 5000, "green")
 
-            setOracleVoted(true)
+            setIsOracleRegistered(true)
 
             setTransactionState({ ...transactionState, error: null, isWaitingForSignature: false, isConfirming: false, isConfirmed: true })
         }
@@ -108,7 +108,7 @@ export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, 
                 isConfirmed: false,
             })
         }
-    }, [isConfirming, isConfirmed, error, hash, transactionState, chainId, toast, setOracleVoted, signedMessage, triggerTxToast])
+    }, [isConfirming, isConfirmed, error, hash, transactionState, chainId, toast, setIsOracleRegistered, triggerTxToast])
 
     return (
         <Button
@@ -132,7 +132,7 @@ export default function ExecuteSwapButton({ wagmiProviderConfig, signedMessage, 
             )}
             {!transactionState.isWaitingForSignature && !transactionState.isConfirming && (
                 <HStack>
-                    <Text>🗳️ Submit encrypted vote</Text>
+                    <Text>Register as an oracle</Text>
                 </HStack>
             )}
         </Button>

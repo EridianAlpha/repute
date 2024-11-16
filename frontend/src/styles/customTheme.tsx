@@ -15,8 +15,14 @@ const customTheme = extendTheme({
             ".bgPage": {
                 bg: props.colorMode === "dark" ? "pageBackground.dark" : "pageBackground.light",
             },
+            ".pageContent": {
+                bg: props.colorMode === "dark" ? "contentBackground.dark" : "contentBackground.light",
+            },
             ".codeBackground": {
-                bg: props.colorMode === "dark" ? "contentBackground.dark" : "pageBackground.light",
+                bg:
+                    props.colorMode === "dark"
+                        ? lightenColor(props.theme.colors.pageBackground.dark, 0.1)
+                        : darkenColor(props.theme.colors.pageBackground.light, 0.05),
             },
         }),
     },

@@ -26,15 +26,15 @@ export const TxToast = () => {
                 <Text pt={1}>
                     View on{" "}
                     <Link
-                        className="bgPage"
                         py={"2px"}
                         px={"8px"}
                         borderRadius={"full"}
                         as={NextLink}
                         href={`${config.chains[chainId].blockExplorerUrl}/tx/${hash}`}
-                        color={"blue"}
                         textDecoration={"underline"}
                         target="_blank"
+                        color={"white"}
+                        bg={"blue"}
                     >
                         block explorer <FontAwesomeIcon icon={faUpRightFromSquare} size={"sm"} />
                     </Link>
