@@ -4,6 +4,7 @@ import { VStack, HStack, Text, Box, Image, Input, Button } from "@chakra-ui/reac
 import { useAccount } from "wagmi"
 
 import EncryptVoteButton from "./EncryptVoteButton"
+import SubmitEncryptedVoteButton from "./SubmitEncryptedVoteButton"
 
 const OracleIcon = ({ oracle }) => {
     return (
@@ -13,11 +14,12 @@ const OracleIcon = ({ oracle }) => {
     )
 }
 
-export default function VoteContainer({ projects, vote, oracles }) {
+export default function VoteContainer({ wagmiProviderConfig, projects, vote, oracles }) {
     const project = projects.find((project) => project.id == vote.projectId)
 
     const [valueToEncrypt, setValueToEncrypt] = useState("")
     const [signedMessage, setSignedMessage] = useState("")
+    const [oracleVoted, setOracleVoted] = useState(false)
 
     const { isConnected } = useAccount()
 
@@ -87,7 +89,7 @@ export default function VoteContainer({ projects, vote, oracles }) {
                                     <EncryptVoteButton valueToEncrypt={valueToEncrypt} setSignedMessage={setSignedMessage} />
                                 </>
                             )}
-                            {signedMessage && (
+                            {signedMessage && !oracleVoted && (
                                 <>
                                     <VStack gap={0}>
                                         <Text className={"codeBackground"} px={3} pt={1} borderTopRadius={"10px"} fontWeight={"bold"}>
@@ -100,15 +102,19 @@ export default function VoteContainer({ projects, vote, oracles }) {
                                             fontSize={"md"}
                                             p={3}
                                             className={"codeBackground"}
+                                            borderRadius={"10px"}
                                         >
                                             {signedMessage}
                                         </Text>
                                     </VStack>
-                                    <Button isDisabled={true}>
-                                        <Text>🗳️ Submit encrypted vote</Text>
-                                    </Button>
+                                    <SubmitEncryptedVoteButton
+                                        wagmiProviderConfig={wagmiProviderConfig}
+                                        signedMessage={signedMessage}
+                                        setOracleVoted={setOracleVoted}
+                                    />
                                 </>
                             )}
+                            {signedMessage && oracleVoted && <Text>Wait to reveal...</Text>}
                         </VStack>
                     )}
                 </VStack>

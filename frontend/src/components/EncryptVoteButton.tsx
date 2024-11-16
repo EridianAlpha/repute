@@ -1,10 +1,6 @@
-import { useState } from "react"
-
 import { Text, Button } from "@chakra-ui/react"
 import { useAccount, useSignMessage } from "wagmi"
-import { ethers } from "ethers"
-
-import config from "public/data/config.json"
+import { ethers, AbiCoder } from "ethers"
 
 export default function EncryptVoteButton({ valueToEncrypt, setSignedMessage }) {
     const { signMessageAsync } = useSignMessage()
@@ -19,7 +15,19 @@ export default function EncryptVoteButton({ valueToEncrypt, setSignedMessage }) 
 
         try {
             console.log("Encrypting vote: ", valueToEncrypt)
-            const messageHash = ethers.hashMessage(valueToEncrypt)
+            console.log("connectedWalletAddress: ", connectedWalletAddress)
+
+            const abiTypes = ["uint256", "uint256", "uint256"]
+            const values = [1, 1, valueToEncrypt]
+
+            const abiCoder = new AbiCoder()
+
+            const encodedMessage = abiCoder.encode(abiTypes, values)
+            console.log("encodedMessage: ", encodedMessage)
+
+            const messageHash = ethers.keccak256(encodedMessage)
+            console.log("messageHash: ", messageHash)
+
             const signedMessage = await signMessageAsync({ account: connectedWalletAddress, message: messageHash })
 
             console.log("Signed message: ", signedMessage)

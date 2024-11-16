@@ -19,13 +19,18 @@ const oracles = [
 ]
 
 export default function ContentContainer({ wagmiProviderConfig }) {
-    const { address: connectedWalletAddress, isConnected } = useAccount()
+    const { isConnected } = useAccount()
 
     return (
         <VStack w={"100vw"} alignItems={"center"} gap={0} px={3} pt={"20px"}>
             {isConnected ? <CurrentAddressInfo /> : <ConnectWalletButton />}
             {/* Hardcode vote.id to 914 */}
-            <VoteContainer projects={projects} vote={votes.find((vote) => (vote.id = 914))} oracles={oracles} />
+            <VoteContainer
+                wagmiProviderConfig={wagmiProviderConfig}
+                projects={projects}
+                vote={votes.find((vote) => (vote.id = 914))}
+                oracles={oracles}
+            />
         </VStack>
     )
 }
