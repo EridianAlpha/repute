@@ -149,7 +149,7 @@ contract Repute is Ownable {
         }
     }
 
-    function submitVote(uint256 projectId, uint256 voteId, bytes calldata hashedAnswer) external {
+    function submitVote(uint256 projectId, uint256 voteId, bytes memory hashedAnswer) external {
         require(oracleMap[msg.sender].id != 0, "Oracle is not registered");
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");
 
