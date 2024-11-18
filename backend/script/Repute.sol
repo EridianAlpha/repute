@@ -177,8 +177,10 @@ contract Repute is Ownable {
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");        
 
         Vote storage vote = projectMap[projectId].voteMap[voteId];
+        bytes storage committedHash = vote.oracleCommitHashes[msg.sender];
+        bytes memory committedHashInMemory = committedHash;
         
-        bool verification = ecverifyData(msg.sender, projectId, voteId, revealedAnswer, vote.oracleCommitHashes[msg.sender]);
+        bool verification = this.ecverifyData(msg.sender, projectId, voteId, revealedAnswer, committedHashInMemory);
         require(verification, "Data was improperly signed.");
 
         if (vote.oracleRevealedAnswers[msg.sender] == 0) {
@@ -251,7 +253,7 @@ contract Repute is Ownable {
 
     // Function to distribute funds equally among payees
     function sendFunds(uint256 projectId, Vote storage vote) internal {
-        require(vote.funding > 0, "No funds to distribute");
+        // require(vote.funding > 0, "No funds to distribute");
         uint256 payeesLength = vote.oraclesPayable.length;
         require(payeesLength > 0, "No payees to distribute funds to.");
 
@@ -285,48 +287,16 @@ contract Repute is Ownable {
         uint256 projectId, 
         uint256 voteId, 
         uint256 revealedAnswer,
-        bytes memory signature
+        bytes calldata signature
     ) public pure returns (bool) {
 
         bytes32 hash = keccak256(abi.encodePacked(projectId, voteId, revealedAnswer));
-        // address recovered = recoverStringFromRaw(hash, signature);
+        address recovered = recoverStringFromRaw(hash, signature);
     
-        return revealedAnswer == 70;
+        return oracle == recovered;
     }
 
-
-    // Recover an address from a message hash and a signature
-    function ecrecovery(
-        bytes32 hash,
-        bytes memory signature
-    ) internal pure returns (address) {
-
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-
-        if (signature.length != 65) {
-            return address(0);
-        }
-
-        assembly {
-            r := mload(add(signature, 0x20))
-            s := mload(add(signature, 0x40))
-            v := byte(0, mload(add(signature, 0x60)))
-        }
-
-        if (v < 27) {
-            v += 27;
-        }
-
-        if (v != 27 && v != 28) {
-            return (address(0));
-        } else {
-            return ecrecover(hash, v, r, s);
-        }
-    }
-
-    function recoverStringFromRaw(string calldata message, bytes calldata sig) internal pure returns (address) {
+    function recoverStringFromRaw(bytes32 message, bytes calldata sig) internal pure returns (address) {
 
         // Sanity check before using assembly
         require(sig.length == 65, "invalid signature");
@@ -344,12 +314,12 @@ contract Repute is Ownable {
         return _ecrecover(message, v, r, s);
     }
 
-    function _ecrecover(string memory message, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
+    function _ecrecover(bytes32 message, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
         // Compute the EIP-191 prefixed message
         bytes memory prefixedMessage = abi.encodePacked(
             "\x19Ethereum Signed Message:\n",
-            itoa(bytes(message).length),
-            message
+            itoa(bytes(toHex(message)).length),
+            toHex(message)
         );
 
         // Compute the message digest
@@ -383,6 +353,27 @@ contract Repute is Ownable {
         }
 
         return string(result);
+    }
+
+    function toHex16 (bytes16 data) internal pure returns (bytes32 result) {
+        result = bytes32 (data) & 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000 |
+            (bytes32 (data) & 0x0000000000000000FFFFFFFFFFFFFFFF00000000000000000000000000000000) >> 64;
+        result = result & 0xFFFFFFFF000000000000000000000000FFFFFFFF000000000000000000000000 |
+            (result & 0x00000000FFFFFFFF000000000000000000000000FFFFFFFF0000000000000000) >> 32;
+        result = result & 0xFFFF000000000000FFFF000000000000FFFF000000000000FFFF000000000000 |
+            (result & 0x0000FFFF000000000000FFFF000000000000FFFF000000000000FFFF00000000) >> 16;
+        result = result & 0xFF000000FF000000FF000000FF000000FF000000FF000000FF000000FF000000 |
+            (result & 0x00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000) >> 8;
+        result = (result & 0xF000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000) >> 4 |
+            (result & 0x0F000F000F000F000F000F000F000F000F000F000F000F000F000F000F000F00) >> 8;
+        result = bytes32 (0x3030303030303030303030303030303030303030303030303030303030303030 +
+            uint256 (result) +
+            (uint256 (result) + 0x0606060606060606060606060606060606060606060606060606060606060606 >> 4 &
+            0x0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F0F) * 39);
+    }
+
+    function toHex (bytes32 data) internal pure returns (string memory) {
+        return string (abi.encodePacked ("0x", toHex16 (bytes16 (data)), toHex16 (bytes16 (data << 128))));
     }
 
 }
