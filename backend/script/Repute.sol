@@ -55,7 +55,7 @@ contract Repute is Ownable {
 
         uint256 funding;
 
-        mapping(address => bytes) oracleCommitHashes;
+        mapping(address => bytes) oracleCommitSignature;
         mapping(address => uint256) oracleRevealedAnswers;
 
         address[] oraclesCommitted;
@@ -149,18 +149,18 @@ contract Repute is Ownable {
         }
     }
 
-    function submitVote(uint256 projectId, uint256 voteId, bytes memory hashedAnswer) external {
+    function submitVote(uint256 projectId, uint256 voteId, bytes memory signature) external {
         require(oracleMap[msg.sender].id != 0, "Oracle is not registered");
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");
 
         Vote storage vote = projectMap[projectId].voteMap[voteId];
 
-        if (vote.oracleCommitHashes[msg.sender].length == 0) {
+        if (vote.oracleCommitSignature[msg.sender].length == 0) {
             vote.oraclesCommitted.push(msg.sender);
             vote.oraclesCommittedCount++;
         }
 
-        vote.oracleCommitHashes[msg.sender] = hashedAnswer;
+        vote.oracleCommitSignature[msg.sender] = signature;
 
         oracleMap[msg.sender].volumePending += vote.funding;
     }
@@ -177,7 +177,7 @@ contract Repute is Ownable {
         require(blacklistedOracles[msg.sender] != true, "Oracle is blacklisted");        
 
         Vote storage vote = projectMap[projectId].voteMap[voteId];
-        bytes storage committedHash = vote.oracleCommitHashes[msg.sender];
+        bytes storage committedHash = vote.oracleCommitSignature[msg.sender];
         bytes memory committedHashInMemory = committedHash;
         
         bool verification = this.ecverifyData(msg.sender, projectId, voteId, revealedAnswer, committedHashInMemory);
