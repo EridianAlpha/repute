@@ -7,7 +7,7 @@
             "iconUrl": "./images/EthSolidLogo.svg",
             "publicJsonRpc": "https://ethereum-holesky-rpc.publicnode.com",
             "blockExplorerUrl": "https://holesky.etherscan.io",
-            "reputeContractAddress": "0x8DCEA8a6a5bf34de716d0535603Ca246a2d22EAe"
+            "reputeContractAddress": "0x37813563d07AAcD827c745A008442801080DD3f0"
         },
         "84532": {
             "type": "testnet",
